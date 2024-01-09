@@ -26,6 +26,14 @@ var options = new JsonSerializerOptions
 
 var data = JsonSerializer.Deserialize<List<PageItem>>(
     new StreamReader(filePath).ReadToEnd());
+
+var data2 = data.Select(x => new PageItem2
+{
+    Content = x.Content,
+    Title = x.Title,
+    Time = x.Date.Split("-")[1].Trim(),
+    Date = DateTime.Parse(string.Join(" ", x.Date.Split("-")[0].Trim().Split(" ").ToList().Take(3)), new CultureInfo("uk-UA")).ToString("dd.MM.yyyy")
+}).ToList();
 /*
 var replaceCodes = new List<KeyValuePair<string, string>>
 {
@@ -45,7 +53,7 @@ var config = new CsvConfiguration(CultureInfo.InvariantCulture)
 using (var writer = new StreamWriter(Path.Combine(filesPath, "pg_ua.csv"), append: false, encoding: Encoding.UTF8))
 using (var csv = new CsvWriter(writer, config))
 {
-    csv.WriteRecords(data);    
+    csv.WriteRecords(data2);    
 }
 
 

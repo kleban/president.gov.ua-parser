@@ -21,17 +21,15 @@ using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
 Console.WriteLine($"Articles count: {list.Count()}");
 
 var pages = new List<PageItem>();
-foreach (var item in list)
+using (IWebDriver driver = new EdgeDriver())
 {
-
-
-    using (IWebDriver driver = new EdgeDriver())
+    try
     {
-        try
+        foreach (var item in list)
         {
             driver.Navigate().GoToUrl(item.Origin);
             var title = driver.FindElement(By.XPath("//h1[@itemprop='name']")).Text;
-            var date = driver.FindElement(By.XPath("//p[@class='date']")).Text;
+            var date = driver.FindElements(By.XPath("//p[@class='date']")).Last().Text;
             var content = driver.FindElement(By.XPath("//div[@class='article_content']")).Text;
 
             pages.Add(new PageItem
@@ -40,20 +38,24 @@ foreach (var item in list)
                 Date = date,
                 Content = content
             });
-
-        }
-        finally
-        {
-            driver.Quit();
         }
     }
+    finally
+    {
+        driver.Quit();
+    }
 }
+
 
 
 for (int i = 0; i < pages.Count; i++)
 {
     var before = pages[i].Content.Length;
     var after = 0;
+
+    pages[i].Content = pages[i].Content.Replace("!", "! ");
+    pages[i].Content = pages[i].Content.Replace(".", ". ");
+
 
     while (before != after)
     {
@@ -84,6 +86,8 @@ for (int i = 0; i < pages.Count; i++)
         after = pages[i].Content.Length;
         Console.WriteLine($"before: {before} / after: {after}");
     }
+
+    
 }
 
 var writer = new StreamWriter($"{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}.json", false, Encoding.UTF8);
